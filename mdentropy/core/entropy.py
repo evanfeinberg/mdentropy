@@ -6,7 +6,7 @@ from numpy import ndarray
 from numpy import sum as npsum
 from numpy import (atleast_2d, arange, array, bincount, diff, finfo, float32,
                    hsplit, linspace, log, log2, meshgrid, nan_to_num, nansum,
-                   product, random, ravel, vstack, exp, bincount)
+                   product, random, ravel, vstack, exp, bincount, issubdtype, integer)
 
 from scipy.spatial import cKDTree
 from scipy.stats import entropy as naive
@@ -57,7 +57,7 @@ def entropy(n_bins, rng, method, *args):
     if method == 'kde':
         return kde_entropy(rng, *args, grid_size=n_bins or 20)
 
-    if n_bins is not None:
+    if n_bins is not None and not issubdtype(args[0].dtype, integer):
         counts = symbolic(n_bins, rng, *args)
     else:
         minlength = max([len(bincount(arg)) for arg in args])
