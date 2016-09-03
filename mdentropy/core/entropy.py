@@ -57,7 +57,7 @@ def entropy(n_bins, rng, method, *args):
     if method == 'kde':
         return kde_entropy(rng, *args, grid_size=n_bins or 20)
 
-    if n_bins is not None and not issubdtype(args[0].dtype, integer):
+    if n_bins is not None or issubdtype(args[0].dtype, float):
         counts = symbolic(n_bins, rng, *args)
     else:
         minlength = max([len(bincount(arg)) for arg in args])
