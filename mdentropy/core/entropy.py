@@ -4,9 +4,9 @@ from itertools import chain
 
 from numpy import ndarray
 from numpy import sum as npsum
-from numpy import (atleast_2d, arange, bincount, diff, finfo, float32,
+from numpy import (atleast_2d, arange, array, bincount, diff, finfo, float32,
                    hsplit, linspace, log, log2, meshgrid, nan_to_num, nansum,
-                   product, random, ravel, vstack, exp)
+                   product, random, ravel, vstack, exp, bincount)
 
 from scipy.spatial import cKDTree
 from scipy.stats import entropy as naive
@@ -57,7 +57,11 @@ def entropy(n_bins, rng, method, *args):
     if method == 'kde':
         return kde_entropy(rng, *args, grid_size=n_bins or 20)
 
-    counts = symbolic(n_bins, rng, *args)
+    if n_bins is not None:
+        counts = symbolic(n_bins, rng, *args)
+    else:
+        minlength = max([len(bincount(arg)) for arg in args])
+        counts = array([bincount(arg, minlength=minlength) for arg in args])
 
     if method == 'chaowangjost':
         return chaowangjost(counts)
@@ -67,7 +71,7 @@ def entropy(n_bins, rng, method, *args):
     return naive(counts)
 
 
-def centropy(n_bins, x, y, rng=None, method='grassberger'):
+def centropy(n_bins, x, y, rng=None, method='knn'):
     """Condtional entropy calculation
 
     Parameters

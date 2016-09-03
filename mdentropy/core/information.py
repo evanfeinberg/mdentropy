@@ -1,7 +1,8 @@
 from .entropy import entropy, centropy
 from ..utils import avgdigamma
 
-from numpy import (atleast_2d, diff, finfo, float32, log, nan_to_num, random,
+from numpy import (atleast_2d, diff, finfo, float32, integer, issubdtype,
+                 log, nan_to_num, random,
                    sqrt, hstack)
 
 from scipy.spatial import cKDTree
@@ -11,7 +12,7 @@ __all__ = ['mutinf', 'nmutinf', 'cmutinf', 'ncmutinf']
 EPS = finfo(float32).eps
 
 
-def mutinf(n_bins, x, y, rng=None, method='grassberger'):
+def mutinf(n_bins, x, y, rng=None, method='knn'):
     """Mutual information calculation
 
     Parameters
@@ -73,7 +74,7 @@ def knn_mutinf(x, y, k=None, boxsize=None):
     return (-a - b + c + d) / log(2)
 
 
-def nmutinf(n_bins, x, y, rng=None, method='grassberger'):
+def nmutinf(n_bins, x, y, rng=None, method='knn'):
     """Normalized mutual information calculation
 
     Parameters
@@ -97,7 +98,7 @@ def nmutinf(n_bins, x, y, rng=None, method='grassberger'):
                       entropy(n_bins, [rng], method, y)))
 
 
-def cmutinf(n_bins, x, y, z, rng=None, method='grassberger'):
+def cmutinf(n_bins, x, y, z, rng=None, method='knn'):
     """Conditional mutual information calculation
 
     Parameters
@@ -164,13 +165,18 @@ def knn_cmutinf(x, y, z, k=None, boxsize=None):
     return (-a - b + c + d) / log(2)
 
 
-def ncmutinf(n_bins, x, y, z, rng=None, method='grassberger'):
+def ncmutinf(n_bins, x, y, z, rng=None, method='knn'):
     """Normalized conditional mutual information calculation
 
     Parameters
     ----------
     n_bins : int
         Number of bins.
+
+        If None, assumes data is pre-binned or a timeseries
+        of discrete variables. In this case, x, y, and z
+        must all be of some integer type: "int", "uint8", etc.
+
     x : array_like, shape = (n_samples, n_dim)
         Conditioned variable
     y : array_like, shape = (n_samples, n_dim)
@@ -185,6 +191,11 @@ def ncmutinf(n_bins, x, y, z, rng=None, method='grassberger'):
     -------
     ncmi : float
     """
+
+    if n_bins is None:
+        assert(issubdtype(x.dtype, integer))
+        method = 'grassberger'
+        rng = None
 
     return (cmutinf(n_bins, x, y, z, rng=rng, method=method) /
             centropy(n_bins, x, z, rng=rng, method=method))
